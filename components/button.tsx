@@ -11,7 +11,7 @@ export default function Button({ title, onPress, className = "" }: ButtonProps) 
   return (
     <TouchableOpacity
          onPress={() => {
-        Alert.alert("Button clicked", title); 
+         
         onPress(); 
       }}
       className={`bg-blue-600 py-4 px-8 rounded-2xl mt-4 shadow-lg ${className}`}

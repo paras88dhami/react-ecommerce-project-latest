@@ -11,7 +11,7 @@ interface RegisterFormProps {
 
 export default function RegisterForm({ control, errors, onSubmit }: RegisterFormProps) {
   return (
-    <View className="px-6 py-8 bg-white rounded-2xl shadow-lg mx-4">
+    <View className="px-6 py-8 bg-white rounded-2xl shadow-lg mx-5">
       
       <Text className="text-gray-700 text-base mb-1">Email</Text>
       <Controller

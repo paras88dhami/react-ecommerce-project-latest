@@ -1,28 +1,36 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Image } from "react-native";
-import api from "../../api/api";
+import React, { useCallback, useState } from "react";
+import { View, Text, FlatList, Image, RefreshControl } from "react-native";
 import { useCartStore, Product } from "../store/store";
 import { router } from "expo-router";
-import Button from "../../components/button"; 
+import Button from "../../components/button";
+import { useProducts } from "../../hook/useProducts";
+import { Pressable } from "react-native"; 
+
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const addToCart = useCartStore((state) => state.addToCart);
 
-  useEffect(() => {
-    api
-      .get("/products")
-      .then((res) => {
-        setProducts(res.data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+ 
+  const { data , isLoading, error, refetch, isFetching } = useProducts();
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+ 
   const renderItem = ({ item }: { item: Product }) => (
-    <View className="bg-white rounded-2xl shadow-md p-4 mb-4 mx-4 items-center">
+    <Pressable
+    onPress={() => router.push({
+  pathname: "/product/[id]",
+  params: { id: item.id.toString() },
+})} 
+    
+  >
+    <View className="bg-white rounded-3x2 shadow-md p-4 mb-4 mx-4 items-center">
       <Image
         source={{ uri: item.image }}
         className="w-32 h-32 mb-4 rounded-lg"
@@ -37,27 +45,41 @@ export default function Products() {
         title="Add to Cart"
         onPress={() => {
           addToCart(item);
-          router.push("../(tabs)/cart"); 
+          
         }}
       />
     </View>
+    </Pressable>
   );
 
-  if (loading)
+  
+  if (isLoading)
     return (
       <View className="flex-1 justify-center items-center bg-gray-100">
         <Text className="text-gray-500 text-lg">Loading products...</Text>
       </View>
     );
 
+ 
+  if (error instanceof Error)
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-100">
+        <Text className="text-red-500 text-lg">{error.message}</Text>
+        <Button title="Retry" onPress={() => refetch()} />
+      </View>
+    );
+
   return (
     <FlatList
       contentContainerStyle={{ paddingVertical: 10 }}
-      data={products}
+      data={data}
       keyExtractor={(item) => item.id.toString()}
       renderItem={renderItem}
       showsVerticalScrollIndicator={false}
       className="bg-gray-100"
+      refreshControl={
+        <RefreshControl refreshing={refreshing || isFetching} onRefresh={handleRefresh} />
+      }
     />
   );
 }

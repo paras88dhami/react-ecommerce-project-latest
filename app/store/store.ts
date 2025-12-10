@@ -5,20 +5,27 @@ export type Product = {
   title: string;
   price: number;
   image: string;
+  description: string;
+  uid?: string; 
 };
 
 type CartStore = {
   cart: Product[];
   addToCart: (product: Product) => void;
-  removeFromCart: (id: number) => void;
+  removeFromCart: (uid: string) => void;
   clearCart: () => void;
 };
 
 export const useCartStore = create<CartStore>((set) => ({
   cart: [],
+  
   addToCart: (product: Product) =>
-    set((state: CartStore) => ({ cart: [...state.cart, product] })),
-  removeFromCart: (id: number) =>
-    set((state: CartStore) => ({ cart: state.cart.filter((item) => item.id !== id) })),
+    set((state) => ({
+      cart: [...state.cart, { ...product, uid: Date.now().toString() + Math.random() }],
+    })),
+
+  removeFromCart: (uid: string) =>
+    set((state) => ({ cart: state.cart.filter((item) => item.uid !== uid) })),
+
   clearCart: () => set({ cart: [] }),
 }));
