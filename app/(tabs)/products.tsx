@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { View, Text, FlatList, Image, RefreshControl } from "react-native";
-import { useCartStore, Product } from "../store/store";
+import { useCartStore, Product } from "../../store/store";
 import { router } from "expo-router";
 import Button from "../../components/button";
 import { useProducts } from "../../hook/useProducts";
@@ -10,8 +10,7 @@ import { Pressable } from "react-native";
 export default function Products() {
   const addToCart = useCartStore((state) => state.addToCart);
 
- 
-  const { data , isLoading, error, refetch, isFetching } = useProducts();
+  const { data: products, isLoading, error, refetch, isFetching } = useProducts();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -72,7 +71,7 @@ export default function Products() {
   return (
     <FlatList
       contentContainerStyle={{ paddingVertical: 10 }}
-      data={data}
+       data={products ?? []} 
       keyExtractor={(item) => item.id.toString()}
       renderItem={renderItem}
       showsVerticalScrollIndicator={false}

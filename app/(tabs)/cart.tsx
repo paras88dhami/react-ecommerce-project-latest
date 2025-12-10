@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Image, ScrollView } from "react-native";
-import { useCartStore } from "../store/store";
+import { useCartStore } from "../../store/store";
 import Button from "../../components/button";
 
 export default function Cart() {
