@@ -1,18 +1,34 @@
-import { useQuery } from "@tanstack/react-query";
-import api from "../api/api";
+
+import { useQuery, type QueryKey } from "@tanstack/react-query";
+import { ApiData } from "../api/api";
 
 
 
-import { Product } from "../store/store";
+interface UseGetHookProps<T> {
+  queryKey: QueryKey;
+  url: string;
+  params?: T | any;
+  enabled?: boolean;
+}
 
-export const useProducts = () => {
-  return useQuery<Product[]>({
-    queryKey: ["products"],
+const useProducts = <T,>({
+  queryKey,
+  url,
+  params,
+  enabled = true,
+}: UseGetHookProps<T>) => {
+  const { isLoading, isFetching, error, data, refetch } = useQuery({
+    queryKey,  
     queryFn: async () => {
-      const response = await api.get("/products"); 
-      return response.data; 
+      const response = await ApiData<T>(url, params);
+      return response.data;
     },
-    enabled: false, 
-    refetchOnWindowFocus: true, 
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData:any) => previousData,
+    enabled,
   });
+
+  return { isLoading, isFetching, error, data, refetch, enabled };
 };
+
+export default useProducts;

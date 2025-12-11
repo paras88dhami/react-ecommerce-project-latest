@@ -1,30 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Image, ScrollView } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
-
-import { Product } from "../../store/store";
+import useProducts from "@/hook/useProducts";
+import { Product, useCartStore } from "@/store/store";
+import { router, useLocalSearchParams } from "expo-router";
+import React from "react";
+import { Image, ScrollView, Text, View } from "react-native";
 import Button from "../../components/button";
-import { useCartStore } from "../../store/store";
-import { useProducts } from "../../hook/useProducts";
 
 export default function ProductDetails() {
   const { id } = useLocalSearchParams();
-  const [product, setProduct] = useState<Product | null>(null);
 
   const addToCart = useCartStore((state) => state.addToCart);
 
-  const { data, isLoading, error, isFetching } = useProducts();
+  const { data: product, isLoading, error } = useProducts<Product>({
+    queryKey: ["product", id],
+    url: `/products/${id}`,
+  });
 
-
-  useEffect(() => {
-    if (data && id) {
-      const found = data.find((p) => p.id.toString() === id);
-      setProduct(found || null);
-    }
-  }, [data, id]);
-
-  
-  if (isLoading || isFetching || !product) {
+  if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
         <Text>Loading product...</Text>
@@ -32,8 +23,7 @@ export default function ProductDetails() {
     );
   }
 
-  
-  if (error) {
+  if (error || !product) {
     return (
       <View className="flex-1 justify-center items-center">
         <Text>Error loading product.</Text>
@@ -41,7 +31,6 @@ export default function ProductDetails() {
     );
   }
 
- 
   return (
     <ScrollView className="p-5 bg-gray-100">
       <Image
@@ -61,11 +50,7 @@ export default function ProductDetails() {
         className="w-full"
       />
 
-      <Button
-        title="Back"
-        onPress={() => router.back()}
-        className="w-full mb-4"
-      />
+      <Button title="Back" onPress={() => router.back()} className="w-full" />
     </ScrollView>
   );
 }
