@@ -12,5 +12,7 @@ export const useProducts = () => {
       const response = await api.get("/products"); 
       return response.data; 
     },
+    enabled: false, 
+    refetchOnWindowFocus: true, 
   });
 };

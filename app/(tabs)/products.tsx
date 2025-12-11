@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback,useEffect, useState } from "react";
 import { View, Text, FlatList, Image, RefreshControl } from "react-native";
 import { useCartStore, Product } from "../../store/store";
 import { router } from "expo-router";
@@ -6,6 +6,8 @@ import Button from "../../components/button";
 import { useProducts } from "../../hook/useProducts";
 import { Pressable } from "react-native"; 
 
+
+  
 
 export default function Products() {
   const addToCart = useCartStore((state) => state.addToCart);
@@ -20,10 +22,16 @@ export default function Products() {
     setRefreshing(false);
   }, [refetch]);
 
+
+    useEffect(() => {
+    refetch();
+  }, []);
+  
+
  
   const renderItem = ({ item }: { item: Product }) => (
     <Pressable
-    onPress={() => router.push({
+  onPress={() => router.push({
   pathname: "/product/[id]",
   params: { id: item.id.toString() },
 })} 
@@ -69,6 +77,7 @@ export default function Products() {
     );
 
   return (
+    
     <FlatList
       contentContainerStyle={{ paddingVertical: 10 }}
        data={products ?? []} 
