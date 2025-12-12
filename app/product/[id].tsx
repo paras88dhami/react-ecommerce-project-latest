@@ -1,4 +1,4 @@
-import useProducts from "@/hook/useProducts";
+import useProducts from "@/hook/useGetHook";
 import { Product, useCartStore } from "@/store/store";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -34,7 +34,11 @@ export default function ProductDetails() {
   return (
     <ScrollView className="p-5 bg-gray-100">
       <Image
-        source={{ uri: product.image }}
+        source={
+          product.thumbnail ?? product.image ?? product.images?.[0]
+            ? { uri: product.thumbnail ?? product.image ?? product.images?.[0] }
+            : require("../../assets/images/partial-react-logo.png")
+        }
         className="w-full h-64 mb-4"
         resizeMode="contain"
       />

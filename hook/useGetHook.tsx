@@ -1,7 +1,6 @@
 
 import { useQuery, type QueryKey } from "@tanstack/react-query";
-import { ApiData } from "../api/api";
-
+import { ApiData, } from "../api/api";
 
 
 interface UseGetHookProps<T> {
@@ -11,24 +10,28 @@ interface UseGetHookProps<T> {
   enabled?: boolean;
 }
 
-const useProducts = <T,>({
+const useGetHook = <T,>({
   queryKey,
   url,
   params,
   enabled = true,
 }: UseGetHookProps<T>) => {
-  const { isLoading, isFetching, error, data, refetch } = useQuery({
-    queryKey,  
-    queryFn: async () => {
+  const { isLoading, isFetching, error, data, refetch } = useQuery<T, Error, T>(
+    queryKey,
+    async () => {
       const response = await ApiData<T>(url, params);
+   
       return response.data;
     },
-    refetchOnWindowFocus: false,
-    placeholderData: (previousData:any) => previousData,
-    enabled,
-  });
+    {
+      refetchOnWindowFocus: false,
+      enabled,
+    }
+  );
 
   return { isLoading, isFetching, error, data, refetch, enabled };
 };
+export default useGetHook;
 
-export default useProducts;
+
+

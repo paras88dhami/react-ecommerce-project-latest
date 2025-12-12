@@ -1,7 +1,7 @@
 import React from "react";
-import { View, Text, Image, ScrollView } from "react-native";
-import { useCartStore } from "../../store/store";
+import { Image, ScrollView, Text, View } from "react-native";
 import Button from "../../components/button";
+import { useCartStore } from "../../store/store";
 
 export default function Cart() {
   const cart = useCartStore((state) => state.cart);
@@ -22,11 +22,15 @@ export default function Cart() {
           <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
             {cart.map((item, index) => (
               <View
-                key={`${item.id}-${index}`} // unique key
+                key={`${item.id}-${index}`}
                 className="bg-white rounded-3xl shadow-md p-4 mb-4 mx-4 items-center"
               >
                 <Image
-                  source={{ uri: item.image }}
+                  source={
+                    item.thumbnail ?? item.image ?? item.images?.[0]
+                      ? { uri: item.thumbnail ?? item.image ?? item.images?.[0] }
+                      : require("../../assets/images/partial-react-logo.png")
+                  }
                   className="w-16 h-16 rounded mr-3"
                 />
                 <Text className="text-base">{item.title}</Text>

@@ -1,20 +1,35 @@
 import React from "react";
-import { TouchableOpacity, Text,Alert } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  className?: string; 
+  className?: string;
+  disabled?: boolean;
 }
 
-export default function Button({ title, onPress, className = "" }: ButtonProps) {
+export default function Button({ title, onPress, className = "", disabled = false }: ButtonProps) {
+  const handlePress = () => {
+    if (disabled) return;
+    try {
+      // safe call so exceptions won't silently block UI
+      onPress?.();
+    } catch (err) {
+      console.error("Button onPress error:", err);
+      // keep user aware in dev mode
+    }
+  };
+
+  const combinedClassName = `${disabled ? "bg-gray-400" : "bg-blue-600"} py-4 px-8 rounded-2xl mt-4 shadow-lg ${className}`;
+
   return (
     <TouchableOpacity
-         onPress={() => {
-         
-        onPress(); 
-      }}
-      className={`bg-blue-600 py-4 px-8 rounded-2xl mt-4 shadow-lg ${className}`}
+      onPress={handlePress}
+      accessibilityRole="button"
+      testID="app-button"
+      className={combinedClassName}
+      activeOpacity={disabled ? 1 : 0.7}
+      disabled={disabled}
     >
       <Text className="text-white text-center font-semibold text-lg">{title}</Text>
     </TouchableOpacity>
