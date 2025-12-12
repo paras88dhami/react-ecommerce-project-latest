@@ -98,7 +98,7 @@ export default function Products() {
 
           {displayedProducts.length >= (products?.length ?? 0) && products?.length > 0 && (
             <Text className="text-center text-gray-500 py-6">
-              That's all bro...💀💀💀
+              That's all the products we have!
             </Text>
           )}
         </>
