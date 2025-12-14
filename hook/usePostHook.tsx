@@ -1,5 +1,5 @@
 
-import { PostHookProps } from "@/store/store";
+import { PostHookProps } from "@/types/type";
 import { useMutation, } from "@tanstack/react-query";
 import { PostApiData } from "../api/api";
 

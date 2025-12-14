@@ -1,5 +1,6 @@
 import useProducts from "@/hook/useGetHook";
-import { Product, useCartStore } from "@/store/store";
+import { useCartStore } from "@/store/store";
+import { Product } from "@/types/type";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
 import { Image, ScrollView, Text, View } from "react-native";

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { PostApiParams } from "../store/store";
+import { PostApiParams } from "../types/type";
 
 const BASE_URL = "https://dummyjson.com";
 
@@ -67,7 +67,8 @@ export const PostApiData = async <T>({ url, formData }: PostApiParams<T>) => {
       ],
     });
     return response; 
-  } catch (error) {
+  } 
+  catch (error) {
     const err = error as AxiosError;
     const status = err.response?.status;
     const serverData = err.response?.data;
