@@ -12,11 +12,11 @@ export default function Button({ title, onPress, className = "", disabled = fals
   const handlePress = () => {
     if (disabled) return;
     try {
-      // safe call so exceptions won't silently block UI
+      
       onPress?.();
     } catch (err) {
       console.error("Button onPress error:", err);
-      // keep user aware in dev mode
+    
     }
   };
 

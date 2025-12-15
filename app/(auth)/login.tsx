@@ -5,11 +5,8 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Text, View } from "react-native";
-
 import RegisterForm from "../../components/RegisterForm";
 import { UserInputs, userSchema } from "../../utils/userSchema";
-
-
 import useGetHook from "@/hook/useGetHook";
 import { UsersResponse } from "@/types/type";
 
@@ -29,7 +26,6 @@ export default function Login() {
  
  
 
- 
   const { data: usersData, isLoading } = useGetHook<UsersResponse>({
     queryKey: ["users"],
     url: "/users",
@@ -40,7 +36,7 @@ export default function Login() {
     if (!usersData?.users) return;
 
     
-    const foundUser = usersData?.users.find(
+  const foundUser = usersData?.users.find(
   (user) =>
     user.email === data.email &&
     user.password === data.password

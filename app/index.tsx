@@ -1,6 +1,5 @@
-import React from "react";
-import Login from "./(auth)/login"; // or "./login/index" both work
+import { Redirect } from "expo-router";
 
-export default function Home() {
-  return <Login />;
+export default function Index() {
+  return <Redirect href="/(auth)/login" />;
 }
