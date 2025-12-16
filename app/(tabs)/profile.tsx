@@ -23,11 +23,13 @@ export default function Profile() {
       <Text className="text-xl font-bold">
         Welcome, {user?.firstName} {user?.lastName}
       </Text>
+
       <Button
        title="log out"
       onPress={handleLogout}
       className="w-half"
       />
+
     </View>
   );
 }
