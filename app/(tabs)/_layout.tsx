@@ -47,6 +47,17 @@ export default function TabsLayout() {
         ),
       }}
       />
+    
+
+     <Tabs.Screen
+      name="users"
+      options={{
+        title:"users",
+        tabBarIcon:({color,size}) =>(
+            <Ionicons name="information-circle-outline" color={color} size={size}/>
+        ),
+      }}
+      />
     </Tabs>
   );
 }

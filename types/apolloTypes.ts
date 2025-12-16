@@ -1,16 +1,14 @@
-export interface User {
+export type UserItem = {
   id: string;
   name: string;
   username: string;
   email: string;
-}
+};
 
-export interface GetUsersData {
-  users: {
-    data: User[];
-  };
-}
+export type GetUsersData = {
+  users: { data: UserItem[] };
+};
 
-export interface GetUsersVars {
+export type GetUsersVars = {
   limit: number;
-}
+};

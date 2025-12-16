@@ -1,101 +1,139 @@
-import React from "react";
-import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { useQuery, useMutation } from "@apollo/client";
+import React, { useState } from "react";
+import { FlatList, ActivityIndicator, Text, View, Pressable } from "react-native";
 import { useForm } from "react-hook-form";
 
-import { GET_USERS } from "@/graphql/query";
-import { CREATE_USER } from "@/graphql/mutation";
-import { GetUsersData, GetUsersVars } from "@/types/apolloTypes";
+import { useUsers } from "@/hook/apolloMutation/useUsers";
+import { useCreateUser } from "@/hook/apolloMutation/useCreateUser";
+import { useUpdateUser } from "@/hook/apolloMutation/useUpdateUser";
+import { useDeleteUser } from "@/hook/apolloMutation/useDeleteUser";
+
 import UserForm from "@/components/useForm";
+import UserRow from "@/components/UserRow";
+import { UserItem } from "@/types/apolloTypes";
 
 export default function UsersScreen() {
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
+  const { data, loading, error } = useUsers();
+  const [createUser] = useCreateUser();
+  const [updateUser] = useUpdateUser();
+  const [deleteUser] = useDeleteUser();
 
-  const { data, loading, error, refetch } = useQuery<
-    GetUsersData,
-    GetUsersVars
-  >(GET_USERS, {
-    variables: { limit: 10 },
-  });
+  const form = useForm();
+  const [editingUser, setEditingUser] = useState<UserItem | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const [createUser, { loading: creating }] = useMutation(CREATE_USER, {
-    onCompleted: () => {
-      refetch();
-      reset();
-    },
-  });
-
-  const onCreateUser = async (formData: any) => {
-    await createUser({
-      variables: {
-        input: {
-          name: formData.name,
-          username: formData.username,
-          email: formData.email,
-          address: {
-            street: "Test Street",
-            city: "Kathmandu",
-            zipcode: "44600",
-          },
-        },
-      },
-    });
-  };
-
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} />;
-  if (error) return <Text>Error: {error.message}</Text>;
+  if (loading) return <ActivityIndicator />;
+  if (error) return <Text>Error loading users</Text>;
 
   return (
     <FlatList
-      data={data?.users.data}
+      data={data?.users.data ?? []}
       keyExtractor={(item) => item.id}
       contentContainerStyle={{ padding: 16 }}
       ListHeaderComponent={
-        <View>
-          <Text style={{ fontSize: 18, fontWeight: "700", marginBottom: 12 }}>
-            Create User
-          </Text>
+        <>
+          {/* CREATE BUTTON */}
+          {!editingUser && (
+            <Pressable
+              onPress={() => {
+                setShowCreateForm((prev) => !prev);
+                form.reset();
+              }}
+              style={{
+                backgroundColor: "#2563eb",
+                padding: 12,
+                borderRadius: 8,
+                marginBottom: 12,
+              }}
+            >
+              <Text style={{ color: "white", textAlign: "center" }}>
+                {showCreateForm ? "Cancel" : "Create User"}
+              </Text>
+            </Pressable>
+          )}
 
-          <UserForm
-            control={control}
-            errors={errors}
-            loading={creating}
-            submitLabel="Create User"
-            onSubmit={handleSubmit(onCreateUser)}
-            fields={[
-              { name: "name", label: "Name", placeholder: "Full name" },
-              { name: "username", label: "Username", placeholder: "Username" },
-              {
-                name: "email",
-                label: "Email",
-                placeholder: "Email",
-                keyboardType: "email-address",
-              },
-            ]}
-          />
+          {/* CREATE FORM */}
+          {showCreateForm && !editingUser && (
+            <UserForm
+              control={form.control}
+              submitLabel="Create User"
+              onSubmit={form.handleSubmit(async (values) => {
+                await createUser({
+                  variables: {
+                    input: {
+                      ...values,
+                      address: {
+                        street: "Test Street",
+                        city: "Kathmandu",
+                        zipcode: "44600",
+                      },
+                    },
+                  },
+                });
 
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              marginVertical: 16,
-            }}
-          >
-            Users
-          </Text>
-        </View>
+                form.reset();
+                setShowCreateForm(false);
+              })}
+            />
+          )}
+
+          {/* EDIT FORM */}
+          {editingUser && (
+            <View>
+              <Text style={{ fontWeight: "700", marginBottom: 8 }}>
+                Edit User
+              </Text>
+
+              <UserForm
+                control={form.control}
+                submitLabel="Save Changes"
+                onSubmit={form.handleSubmit(async (values) => {
+                  await updateUser({
+                    variables: {
+                      id: editingUser.id,
+                      input: {
+                        name: values.name,
+                        username: values.username,
+                        email: values.email,
+                      },
+                    },
+                  });
+
+                  setEditingUser(null);
+                  form.reset();
+                })}
+              />
+
+              <Pressable
+                onPress={() => {
+                  setEditingUser(null);
+                  form.reset();
+                }}
+              >
+                <Text style={{ color: "gray", marginTop: 8 }}>Cancel Edit</Text>
+              </Pressable>
+            </View>
+          )}
+        </>
       }
       renderItem={({ item }) => (
-        <View style={{ paddingVertical: 10 }}>
-          <Text style={{ fontWeight: "600" }}>{item.name}</Text>
-          <Text style={{ color: "gray" }}>@{item.username}</Text>
-          <Text>{item.email}</Text>
-        </View>
+        <UserRow
+          user={item}
+          onEdit={() => {
+            setEditingUser(item);
+            setShowCreateForm(false);
+
+            form.reset({
+              name: item.name,
+              username: item.username,
+              email: item.email,
+            });
+          }}
+          onDelete={() =>
+            deleteUser({
+              variables: { id: item.id },
+            })
+          }
+        />
       )}
     />
   );
