@@ -1,13 +1,17 @@
-import { DataTable } from "@/components/DataTable";
+import { DataTable } from "@/components/dataTable";
+// import { searchVar } from "@/components/localState/search/Cache";
+// import { debouncedWriteSearch } from "@/components/localState/search/debouncedSearch";
+// import { SearchInput } from "@/components/localState/search/searchInput";
 import useGetHook from "@/hook/useGetHook";
 import { User, UsersResponse } from "@/types/type";
+import { useReactiveVar } from "@apollo/client";
 import { ColumnDef } from "@tanstack/react-table";
 import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 const usertable = () => {
-  const { data, isLoading } = useGetHook<UsersResponse>({
+  //  const searchText = useReactiveVar(searchVar);
+  const { data, isLoading, } = useGetHook<UsersResponse>({
     queryKey: ["users"],
     url: "/users",
     
@@ -34,7 +38,13 @@ const columns: ColumnDef<User>[] = [
 ];
 
   return (
+   
     <SafeAreaView style={{ flex: 1 }}>
+      {/* <SearchInput
+                  value={searchText}
+                  placeholder="Search products..."
+                  onChange={debouncedWriteSearch}
+                /> */}
       <View className="items-center mt-4">
         <Text className="font-bold text-xl">Users Table</Text>
       </View>
@@ -45,6 +55,7 @@ const columns: ColumnDef<User>[] = [
         <DataTable data={data?.users??[]} columns={columns} />
       )}
     </SafeAreaView>
+    
   );
 };
 

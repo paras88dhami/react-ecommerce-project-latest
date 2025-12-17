@@ -1,7 +1,7 @@
 import { Product } from "@/types/type";
 import { create } from "zustand";
 
-type CartStore = {
+export type CartStore = {
   cart: Product[];
   addToCart: (product: Product) => void;
   removeFromCart: (uid: string) => void;
@@ -21,3 +21,5 @@ export const useCartStore = create<CartStore>((set) => ({
 
   clearCart: () => set({ cart: [] }),
 }));
+export { Product };
+

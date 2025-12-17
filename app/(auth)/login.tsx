@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Text, View } from "react-native";
-import RegisterForm from "../../components/RegisterForm";
+import RegisterForm from "../../components/registerForm";
 import { UserInputs, userSchema } from "../../utils/userSchema";
 import useGetHook from "@/hook/useGetHook";
 import { UsersResponse } from "@/types/type";
@@ -61,7 +61,7 @@ export default function Login() {
   };
 
   return (
-    <View className="flex-1 justify-center items-center bg-gray-100">
+    <View className="flex-1 justify-center items-center w-full h-full bg-gray-100">
       <Text className="text-3xl font-bold text-blue-600 mb-6">
         Login
       </Text>

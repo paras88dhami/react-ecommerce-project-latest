@@ -1,6 +1,7 @@
 import Button from "@/components/button";
 import useGethook from "@/hook/useGetHook";
 import { Product, useCartStore } from "@/store/store";
+import { useReactiveVar } from "@apollo/client";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -13,39 +14,56 @@ import {
   View,
 } from "react-native";
 
+import { searchVar } from "@/components/localState/search/Cache";
+import { debouncedWriteSearch } from "@/components/localState/search/debouncedSearch";
+import { SearchInput } from "@/components/localState/search/searchInput";
+
 export default function Products() {
   const addToCart = useCartStore((state) => state.addToCart);
+  const searchText = useReactiveVar(searchVar);
 
-  const limit = 5;
+  const limit = 6;
   const [page, setPage] = useState(1);
-
-  const skip = (page - 1) * limit;
-
-   const [allProducts, setAllProducts] = useState<Product[]>([]);
-
-  const {
-    data: productsResponse,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useGethook<{ products: Product[]; total: number; skip?: number; limit?: number }>({
-    queryKey: ["products", page, limit],
-    url: `/products?limit=${limit}&skip=${skip}`,
-  });
-
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const products = productsResponse?.products ?? [];
-
-  
+  /* Reset page when search changes */
   useEffect(() => {
-    if (products) {
-      setAllProducts((prev) => (page === 1 ? products : [...prev, ...products]));
-    }
-  }, [products, page]);
+    setPage(1);
+  }, [searchText]);
 
- 
+  /* Fetch products */
+  const {
+    data: productsResponse,
+    isFetching,
+    refetch,
+  } = useGethook<{ products: Product[]; total: number }>({
+    queryKey: ["products", page, limit, searchText],
+    url: searchText ? "/products/search" : "/products",
+    params: {
+      limit,
+      skip: (page - 1) * limit,
+      q: searchText,
+    },
+  });
+
+  /* Merge products for pagination */
+  useEffect(() => {
+    if (!productsResponse?.products) return;
+
+    setAllProducts((prev) => {
+      if (page === 1) return productsResponse.products;
+
+      const ids = new Set(prev.map((p) => p.id));
+      const newItems = productsResponse.products.filter(
+        (p) => !ids.has(p.id)
+      );
+
+      return [...prev, ...newItems];
+    });
+  }, [productsResponse, page]);
+
+  /* Pull to refresh */
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     setPage(1);
@@ -53,104 +71,93 @@ export default function Products() {
     setRefreshing(false);
   }, [refetch]);
 
-
+  /* Infinite scroll */
   const handleLoadMore = () => {
-    if (!isFetching && productsResponse && allProducts.length < (productsResponse.total ?? 0)) {
+    const total = productsResponse?.total ?? 0;
+    if (!isFetching && allProducts.length < total) {
       setPage((prev) => prev + 1);
     }
   };
 
- 
-  const hasMore = !!productsResponse && allProducts.length < (productsResponse.total ?? 0);
-
+  /* Product card */
   const renderItem = ({ item }: { item: Product }) => {
     const imageUri = item.thumbnail ?? item.image ?? item.images?.[0];
-    const source = imageUri
-      ? { uri: imageUri }
-      : require("../../assets/images/partial-react-logo.png");
 
     return (
-    <Pressable
-      onPress={() =>
-        router.push({
-          pathname: "/product/[id]",
-          params: { id: item.id.toString() },
-        })
-      }
-    >
-      <View className="bg-white rounded-3x2 shadow-md p-4 mb-4 mx-4 items-center">
-        <Image
-          source={source}
-          className="w-32 h-32 mb-4 rounded-lg"
-          resizeMode="contain"
-        />
-        <Text className="text-lg font-semibold text-gray-800 mb-1 text-center">
-          {item.title}
-        </Text>
-        <Text className="text-blue-600 font-bold mb-4 text-center">
-          ${item.price}
-        </Text>
+      <Pressable
+        onPress={() =>
+          router.push({
+            pathname: "/product/[id]",
+            params: { id: item.id.toString() },
+          })
+        }
+        className="flex-1 m-2"
+      >
+        <View className="bg-white rounded-2xl shadow-sm p-3">
+          <Image
+            source={{ uri: imageUri }}
+            className="w-full h-28 rounded-xl mb-2"
+            resizeMode="contain"
+          />
 
-        <Button title="Add to Cart" onPress={() => addToCart(item)} />
-      </View>
-    </Pressable>
-  );
+          <Text
+            numberOfLines={2}
+            className="text-sm font-semibold text-gray-800"
+          >
+            {item.title}
+          </Text>
+
+          <Text className="text-blue-600 font-bold my-1">
+            ${item.price}
+          </Text>
+
+         <Button
+        title="Add to Cart"
+         onPress={() => addToCart(item)}
+/>
+          
+        </View>
+      </Pressable>
+    );
   };
 
-  // Loading Screen
-  if (isLoading && page === 1)
-    return (        
-      <View className="flex-1 justify-center items-center bg-gray-100">
-        <ActivityIndicator size="large" />
-        <Text className="text-gray-500 text-lg mt-2">Loading products...</Text>
-      </View>
-    );
-
-  // Error Screen
-  if (error && error instanceof Error)
-    return (
-      <View className="flex-1 justify-center items-center bg-gray-100">
-        <Text className="text-red-500 text-lg">{error?.message}</Text>
-        <Button title="Retry" onPress={() => refetch()} />
-      </View>
-    );
-
   return (
-    <FlatList
-      data={allProducts}
-      contentContainerStyle={{ paddingVertical: 10 }}
-      keyExtractor={(item) => item.id.toString()}
-      renderItem={renderItem}
-      showsVerticalScrollIndicator={false}
-      className="bg-gray-100"
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing || isFetching}
-          onRefresh={handleRefresh}
-        />
-      }
-      ListFooterComponent={
-        <>
-          {/* Load More button */}
-          {!isFetching && hasMore && allProducts.length > 0 && (
-            <View className="p-5 pt-0">
-              <Button title="Load More" onPress={handleLoadMore} disabled={isFetching} />
-            </View>
-          )}
+    <View className="flex-1 bg-gray-100">
+      {/* Search */}
+      <SearchInput
+        value={searchText}
+        placeholder="Search products..."
+        onChange={debouncedWriteSearch}
+      />
 
-          {/* No more products */}
-          {!hasMore && allProducts.length > 0 && (
-            <Text className="text-center text-gray-500 py-6">
-              That's all the products we have!
+      {/* Products Grid */}
+      <FlatList
+        data={allProducts}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        numColumns={2}
+        columnWrapperStyle={{ paddingHorizontal: 8 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        ListFooterComponent={
+          isFetching ? (
+            <View className="py-6">
+              <ActivityIndicator />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !isFetching ? (
+            <Text className="text-center text-gray-500 py-10">
+              No products found
             </Text>
-          )}
-        </>
-      }
-      ListEmptyComponent={
-        <Text className="text-center text-gray-500 py-10">
-          No products found
-        </Text>
-      }
-    />
+          ) : null
+        }
+      />
+    </View>
   );
 }

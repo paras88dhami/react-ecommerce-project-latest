@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { FlatList, ActivityIndicator, Text, View, Pressable } from "react-native";
+import {
+  FlatList,
+  ActivityIndicator,
+  Text,
+  View,
+  Pressable,
+} from "react-native";
 import { useForm } from "react-hook-form";
 
 import { useUsers } from "@/hook/apolloMutation/useUsers";
@@ -8,7 +14,7 @@ import { useUpdateUser } from "@/hook/apolloMutation/useUpdateUser";
 import { useDeleteUser } from "@/hook/apolloMutation/useDeleteUser";
 
 import UserForm from "@/components/useForm";
-import UserRow from "@/components/UserRow";
+import UserRow from "@/components/userRow";
 import { UserItem } from "@/types/apolloTypes";
 
 export default function UsersScreen() {
@@ -21,16 +27,33 @@ export default function UsersScreen() {
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  if (loading) return <ActivityIndicator />;
-  if (error) return <Text>Error loading users</Text>;
+  if (loading)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+
+  if (error)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-red-500">Error loading users</Text>
+      </View>
+    );
 
   return (
     <FlatList
       data={data?.users.data ?? []}
       keyExtractor={(item) => item.id}
-      contentContainerStyle={{ padding: 16 }}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      className="bg-gray-100"
       ListHeaderComponent={
-        <>
+        <View className="p-4">
+          {/* TITLE */}
+          <Text className="text-2xl font-bold mb-4 text-gray-800">
+            Users
+          </Text>
+
           {/* CREATE BUTTON */}
           {!editingUser && (
             <Pressable
@@ -38,14 +61,11 @@ export default function UsersScreen() {
                 setShowCreateForm((prev) => !prev);
                 form.reset();
               }}
-              style={{
-                backgroundColor: "#2563eb",
-                padding: 12,
-                borderRadius: 8,
-                marginBottom: 12,
-              }}
+              className={`rounded-xl py-3 mb-4 ${
+                showCreateForm ? "bg-gray-400" : "bg-blue-600"
+              }`}
             >
-              <Text style={{ color: "white", textAlign: "center" }}>
+              <Text className="text-white text-center font-semibold">
                 {showCreateForm ? "Cancel" : "Create User"}
               </Text>
             </Pressable>
@@ -53,33 +73,39 @@ export default function UsersScreen() {
 
           {/* CREATE FORM */}
           {showCreateForm && !editingUser && (
-            <UserForm
-              control={form.control}
-              submitLabel="Create User"
-              onSubmit={form.handleSubmit(async (values) => {
-                await createUser({
-                  variables: {
-                    input: {
-                      ...values,
-                      address: {
-                        street: "Test Street",
-                        city: "Kathmandu",
-                        zipcode: "44600",
+            <View className="bg-white rounded-xl p-4 mb-6 shadow">
+              <Text className="text-lg font-semibold mb-3 text-gray-700">
+                New User
+              </Text>
+
+              <UserForm
+                control={form.control}
+                submitLabel="Create User"
+                onSubmit={form.handleSubmit(async (values) => {
+                  await createUser({
+                    variables: {
+                      input: {
+                        ...values,
+                        address: {
+                          street: "Test Street",
+                          city: "Kathmandu",
+                          zipcode: "44600",
+                        },
                       },
                     },
-                  },
-                });
+                  });
 
-                form.reset();
-                setShowCreateForm(false);
-              })}
-            />
+                  form.reset();
+                  setShowCreateForm(false);
+                })}
+              />
+            </View>
           )}
 
           {/* EDIT FORM */}
           {editingUser && (
-            <View>
-              <Text style={{ fontWeight: "700", marginBottom: 8 }}>
+            <View className="bg-white rounded-xl p-4 mb-6 shadow">
+              <Text className="text-lg font-semibold mb-3 text-gray-700">
                 Edit User
               </Text>
 
@@ -108,32 +134,39 @@ export default function UsersScreen() {
                   setEditingUser(null);
                   form.reset();
                 }}
+                className="mt-3"
               >
-                <Text style={{ color: "gray", marginTop: 8 }}>Cancel Edit</Text>
+                <Text className="text-gray-500 text-center">
+                  Cancel Edit
+                </Text>
               </Pressable>
             </View>
           )}
-        </>
+        </View>
       }
       renderItem={({ item }) => (
-        <UserRow
-          user={item}
-          onEdit={() => {
-            setEditingUser(item);
-            setShowCreateForm(false);
+        <View className="px-4">
+          <View className="bg-white rounded-xl mb-3 shadow-sm">
+            <UserRow
+              user={item}
+              onEdit={() => {
+                setEditingUser(item);
+                setShowCreateForm(false);
 
-            form.reset({
-              name: item.name,
-              username: item.username,
-              email: item.email,
-            });
-          }}
-          onDelete={() =>
-            deleteUser({
-              variables: { id: item.id },
-            })
-          }
-        />
+                form.reset({
+                  name: item.name,
+                  username: item.username,
+                  email: item.email,
+                });
+              }}
+              onDelete={() =>
+                deleteUser({
+                  variables: { id: item.id },
+                })
+              }
+            />
+          </View>
+        </View>
       )}
     />
   );
