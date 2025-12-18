@@ -1,7 +1,7 @@
 import { DataTable } from "@/components/dataTable";
-// import { searchVar } from "@/components/localState/search/Cache";
-// import { debouncedWriteSearch } from "@/components/localState/search/debouncedSearch";
-// import { SearchInput } from "@/components/localState/search/searchInput";
+import { searchVar } from "@/components/localState/search/Cache";
+
+import { SearchInput } from "@/components/localState/search/searchInput";
 import useGetHook from "@/hook/useGetHook";
 import { User, UsersResponse } from "@/types/type";
 import { useReactiveVar } from "@apollo/client";
@@ -10,7 +10,7 @@ import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 const usertable = () => {
-  //  const searchText = useReactiveVar(searchVar);
+  const searchText = useReactiveVar(searchVar);
   const { data, isLoading, } = useGetHook<UsersResponse>({
     queryKey: ["users"],
     url: "/users",

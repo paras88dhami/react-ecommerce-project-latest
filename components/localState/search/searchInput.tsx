@@ -1,28 +1,39 @@
-import React from "react";
+import { AntDesign } from "@expo/vector-icons";
+import React, { useState } from "react";
 import { TextInput, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { searchCache, searchVar } from "@/components/localState/search/Cache";
+import { GET_SEARCH_TEXT } from "@/components/localState/search/localQuery";
+import { useDebouncedValue } from "@/components/Debounceforsearch";
 type SearchInputProps = {
-  value: string;
-  onChange: (text: string) => void;
+ 
   placeholder?: string;
 };
 
 export function SearchInput({
-  value,
-  onChange,
+  
   placeholder = "Search...",
 }: SearchInputProps) {
+  const [searchValue, setSearchValue] = useState("");
+  const debounceSearch = useDebouncedValue(searchValue,500)
+  const handleSearchValue = (value: string) => {
+    setSearchValue(value);
+    searchCache.writeQuery({
+      query:GET_SEARCH_TEXT ,
+      data: {
+        searchText: searchVar(debounceSearch),
+      },
+    });
+  };
   return (
-    // <View className="px-4 py-3 bg-gray-100 ">
-      <View  className="flex-row items-center bg-white rounded-xl border border-blue-200 mx-4  px-4 shadow-sm">
-        <Ionicons name="search" size={20} color="#021e4dff" />
+    <View className="flex-row px-4 py-3 items-center m-2 border border-gray-300 rounded-lg bg-slate-400">
+      <AntDesign name="search" size={24} color="gray" className="mr-2" />
       <TextInput
-        defaultValue={value}
+        value={searchValue}
         placeholder={placeholder}
-        onChangeText={onChange}
-        className="flex-1 px-3 py-3  text-base text-gray-800"
+        onChangeText={handleSearchValue}
+        className="flex-1 h-7"
+        maxFontSizeMultiplier={2}
       />
-      {/* </View> */}
     </View>
   );
 }

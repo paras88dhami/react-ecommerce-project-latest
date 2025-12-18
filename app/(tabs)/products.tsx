@@ -15,7 +15,7 @@ import {
 } from "react-native";
 
 import { searchVar } from "@/components/localState/search/Cache";
-import { debouncedWriteSearch } from "@/components/localState/search/debouncedSearch";
+
 import { SearchInput } from "@/components/localState/search/searchInput";
 
 export default function Products() {
@@ -123,14 +123,10 @@ export default function Products() {
 
   return (
     <View className="flex-1 bg-gray-100">
-      {/* Search */}
-      <SearchInput
-        value={searchText}
-        placeholder="Search products..."
-        onChange={debouncedWriteSearch}
-      />
+     
+       <SearchInput placeholder="Search products..." />
 
-      {/* Products Grid */}
+   
       <FlatList
         data={allProducts}
         keyExtractor={(item) => item.id.toString()}
