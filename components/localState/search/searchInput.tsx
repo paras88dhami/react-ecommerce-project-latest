@@ -25,7 +25,7 @@ export function SearchInput({
     });
   };
   return (
-    <View className="flex-row px-4 py-3 items-center m-2 border border-gray-300 rounded-lg bg-slate-400">
+    <View className="flex-row px-4 py-3 items-center m-2 border border-gray-300 rounded-lg bg-white">
       <AntDesign name="search" size={24} color="gray" className="mr-2" />
       <TextInput
         value={searchValue}

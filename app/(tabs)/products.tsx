@@ -15,7 +15,6 @@ import {
 } from "react-native";
 
 import { searchVar } from "@/components/localState/search/Cache";
-
 import { SearchInput } from "@/components/localState/search/searchInput";
 
 export default function Products() {
