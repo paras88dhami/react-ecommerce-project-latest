@@ -1,23 +1,45 @@
 import { DataTable } from "@/components/dataTable";
 import { searchVar } from "@/components/localState/search/Cache";
-
 import { SearchInput } from "@/components/localState/search/searchInput";
+
 import useGetHook from "@/hook/useGetHook";
 import { User, UsersResponse } from "@/types/type";
+
 import { useReactiveVar } from "@apollo/client";
 import { ColumnDef } from "@tanstack/react-table";
-import React from "react";
+import React, { useMemo } from "react";
+
 import { ActivityIndicator, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-const usertable = () => {
+
+const UserTable = () => {
   const searchText = useReactiveVar(searchVar);
-  const { data, isLoading, } = useGetHook<UsersResponse>({
+
+  const { data, isLoading } = useGetHook<UsersResponse>({
     queryKey: ["users"],
     url: "/users",
-    
   });
-  
 
+  const columns: ColumnDef<User>[] = [
+    { header: "Id", accessorKey: "id" },
+    { header: "Name", accessorKey: "name" },
+    { header: "Email", accessorKey: "email" },
+    { header: "Password", accessorKey: "password" },
+    { header: "Role", accessorKey: "role" },
+    { header: "Avatar", accessorKey: "avatar" },
+  ];
+
+  const filteredUsers = useMemo(() => {
+    if (!searchText) return data?.users ?? [];
+
+    const query = searchText.toLowerCase();
+
+    return (data?.users ?? []).filter((user) =>
+      user.firstName?.toLowerCase().includes(query) ||
+      user.email?.toLowerCase().includes(query) ||
+      user.role?.toLowerCase().includes(query)
+    );
+  }, [data?.users, searchText]);
 
   if (isLoading) {
     return (
@@ -28,35 +50,29 @@ const usertable = () => {
     );
   }
 
-const columns: ColumnDef<User>[] = [
-  { header: "Id", accessorKey: "id" },
-  { header: "Name", accessorKey: "name" },
-  { header: "Email", accessorKey: "email" },
-  { header: "Password", accessorKey: "password" },
-  { header: "Role", accessorKey: "role" },
-  { header: "Avatar", accessorKey: "avatar" },
-];
-
   return (
-   
     <SafeAreaView style={{ flex: 1 }}>
-      {/* <SearchInput
-                  value={searchText}
-                  placeholder="Search products..."
-                  onChange={debouncedWriteSearch}
-                /> */}
+      <View className="px-4 mt-4">
+        <SearchInput
+          value={searchText}
+          placeholder="Search users..."
+          onChange={(text: string) => searchVar(text)}
+        />
+      </View>
+
       <View className="items-center mt-4">
         <Text className="font-bold text-xl">Users Table</Text>
       </View>
 
-      {data?.users?.length === 0 ? (
-        <Text className="text-center mt-4">No users found.</Text>
+      {filteredUsers.length === 0 ? (
+        <Text className="text-center mt-6 text-gray-500">
+          No users found.
+        </Text>
       ) : (
-        <DataTable data={data?.users??[]} columns={columns} />
+        <DataTable data={filteredUsers} columns={columns} />
       )}
     </SafeAreaView>
-    
   );
 };
 
-export default usertable;
+export default UserTable;
